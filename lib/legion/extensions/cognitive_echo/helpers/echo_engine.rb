@@ -53,14 +53,7 @@ module Legion
             domains = @echoes.values.map(&:domain).uniq
             return 1.0 if domains.size <= 1
 
-            intensities_by_domain = domains.map do |d|
-              @echoes.values.select { |e| e.domain == d }.sum(&:intensity)
-            end
-            max_intensity = intensities_by_domain.max
-            total = intensities_by_domain.sum
-            return 0.0 if total.zero?
-
-            (max_intensity / total).round(10)
+            domain_concentration(domains)
           end
 
           def chamber_label = Constants.label_for(CHAMBER_LABELS, echo_chamber_score)
@@ -109,6 +102,14 @@ module Legion
           end
 
           private
+
+          def domain_concentration(domains)
+            intensities = domains.map { |d| @echoes.values.select { |e| e.domain == d }.sum(&:intensity) }
+            total = intensities.sum
+            return 0.0 if total.zero?
+
+            (intensities.max / total).round(10)
+          end
 
           def count_silent
             @echoes.values.count(&:silent?)
